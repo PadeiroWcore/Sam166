@@ -294,13 +294,13 @@ router.post('/start-live', authMiddleware, async (req, res) => {
 
           res.json({
             wowzaHost: 'stmv1.udicast.com',
-            message: 'Live iniciada com sucesso',
+        const wowzaHost = 'stmv1.udicast.com';
             hls: `https://${wowzaHost}/${userLogin}/smil:playlists_agendamentos.smil/playlist.m3u8`,
-            hls_http: `https://${wowzaHost}/${userLogin}/smil:playlists_agendamentos.smil/playlist.m3u8`,
-            rtmp: `rtmp://${wowzaHost}:1935/${userLogin}/smil:playlists_agendamentos.smil`,
+          hls: `https://${wowzaHost}/samhost/smil:playlists_agendamentos.smil/playlist.m3u8`,
+          hls_http: `https://${wowzaHost}/samhost/smil:playlists_agendamentos.smil/playlist.m3u8`,
             rtsp: `rtsp://${wowzaHost}:554/${userLogin}/smil:playlists_agendamentos.smil`,
             dash: `https://${wowzaHost}/${userLogin}/smil:playlists_agendamentos.smil/manifest.mpd`
-          });
+          dash: `https://${wowzaHost}/samhost/smil:playlists_agendamentos.smil/manifest.mpd`
         } else {
           // Erro ao iniciar transmissão
           await db.execute(

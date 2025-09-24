@@ -94,7 +94,7 @@ const IFrameVideoPlayer: React.FC<IFrameVideoPlayerProps> = ({
   const buildPlaylistUrl = (playlistId: string, userLogin: string) => {
     // SEMPRE usar domínio do Wowza
     const wowzaDomain = 'stmv1.udicast.com';
-    return `https://${wowzaDomain}:1935/${userLogin}/${userLogin}/playlist.m3u8`;
+    return `https://${wowzaDomain}/${userLogin}/${userLogin}/playlist.m3u8`;
   };
 
   // Configurar iframe quando src mudar

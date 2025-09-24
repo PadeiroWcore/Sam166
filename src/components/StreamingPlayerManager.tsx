@@ -108,12 +108,12 @@ const StreamingPlayerManager: React.FC<StreamingPlayerManagerProps> = ({
           
           if (data.stream_type === 'playlist' && data.transmission) {
             // Para playlist, usar SMIL conforme PHP: smil:transcoder.smil ou smil:playlists_agendamentos.smil
-            streamUrl = `https://stmv1.udicast.com/${userLogin}/smil:playlists_agendamentos.smil/playlist.m3u8`;
+            streamUrl = `https://stmv1.udicast.com/samhost/smil:playlists_agendamentos.smil/playlist.m3u8`;
             title = `📺 Playlist: ${data.transmission.playlist_nome || data.transmission.titulo}`;
             console.log('🎵 Stream de playlist detectado:', streamUrl);
           } else if (data.stream_type === 'obs' && data.obs_stream?.is_live) {
             // Para OBS, usar formato padrão: servidor/login/login/playlist.m3u8
-            streamUrl = `https://stmv1.udicast.com/${userLogin}/${userLogin}/playlist.m3u8`;
+            streamUrl = `https://stmv1.udicast.com/samhost/${userLogin}_live/playlist.m3u8`;
             title = `📡 OBS: ${data.obs_stream.streamName || `${userLogin}_live`}`;
             console.log('📡 Stream OBS detectado:', streamUrl);
           }
@@ -345,9 +345,9 @@ const StreamingPlayerManager: React.FC<StreamingPlayerManagerProps> = ({
 
     if (currentStreamUrl) {
       // Construir URL do player na porta do sistema
-      const baseUrl = process.env.NODE_ENV === 'production' 
-        ? 'http://samhost.wcore.com.br:3001'
-        : 'http://localhost:3001';
+      const baseUrl = window.location.protocol === 'https:' 
+        ? `https://${window.location.hostname}:3001`
+        : `http://${window.location.hostname}:3001`;
       
       const contador = enableViewerCounter ? 'true' : 'false';
       const compartilhamento = enableSocialSharing ? 'true' : 'false';

@@ -209,16 +209,16 @@ const Dashboard: React.FC = () => {
         if (data.is_live) {
           if (data.stream_type === 'obs' && data.obs_stream?.is_live) {
             // Para OBS, usar URL do player na porta do sistema
-            const baseUrl = process.env.NODE_ENV === 'production' 
-              ? 'http://samhost.wcore.com.br:3001'
-              : 'http://localhost:3001';
+            const baseUrl = window.location.protocol === 'https:' 
+              ? `https://${window.location.hostname}:3001`
+              : `http://${window.location.hostname}:3001`;
             setCurrentVideoUrl(`${baseUrl}/api/player-port/iframe?login=${userLogin}&player=1&contador=true`);
             setPlaylistName(`📡 OBS: ${data.obs_stream.streamName || `${userLogin}_live`}`);
           } else if (data.transmission) {
             // Para playlist, usar URL do player na porta do sistema
-            const baseUrl = process.env.NODE_ENV === 'production' 
-              ? 'http://samhost.wcore.com.br:3001'
-              : 'http://localhost:3001';
+            const baseUrl = window.location.protocol === 'https:' 
+              ? `https://${window.location.hostname}:3001`
+              : `http://${window.location.hostname}:3001`;
             setCurrentVideoUrl(`${baseUrl}/api/player-port/iframe?login=${userLogin}&playlist=${data.transmission.codigo_playlist}&player=1&contador=true&compartilhamento=true`);
             
             // Usar nome da playlist da resposta

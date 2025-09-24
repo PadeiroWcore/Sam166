@@ -38,6 +38,21 @@ const PORT = process.env.PORT || 3001;
 const isProduction = process.env.NODE_ENV === 'production';
 
 app.use(helmet({ crossOriginEmbedderPolicy: false, contentSecurityPolicy: false }));
+
+// Configurar headers para permitir iframes
+app.use((req, res, next) => {
+  // Remover X-Frame-Options para permitir iframes
+  res.removeHeader('X-Frame-Options');
+  
+  // Configurar headers para iframes
+  if (req.path.includes('/api/player-port/iframe') || req.path.includes('/api/players/iframe')) {
+    res.setHeader('X-Frame-Options', 'ALLOWALL');
+    res.setHeader('Content-Security-Policy', "frame-ancestors *");
+  }
+  
+  next();
+});
+
 app.use(compression());
 
 const limiter = rateLimit({
@@ -53,10 +68,14 @@ app.use(cors({
   origin: isProduction ? [
     'http://samhost.wcore.com.br',
     'https://samhost.wcore.com.br',
-    'http://samhost.wcore.com.br:3000'
+    'http://samhost.wcore.com.br:3000',
+    'http://samhost.wcore.com.br:3001',
+    'https://samhost.wcore.com.br:3001'
   ] : [
     'http://localhost:3000',
-    'http://127.0.0.1:3000'
+    'http://127.0.0.1:3000',
+    'http://localhost:3001',
+    'http://127.0.0.1:3001'
   ],
   credentials: true
 }));

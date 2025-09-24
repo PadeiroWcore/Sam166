@@ -100,7 +100,7 @@ router.get('/status', authMiddleware, async (req, res) => {
         user_login: userLogin,
         has_active_transmission: true,
         transmission_type: 'playlist',
-        stream_url: `http://stmv1.udicast.com:1935/samhost/smil:playlists_agendamentos.smil/playlist.m3u8`,
+        stream_url: `https://stmv1.udicast.com/samhost/smil:playlists_agendamentos.smil/playlist.m3u8`,
         title: transmission.titulo,
         playlist_name: transmission.playlist_nome
       };
@@ -116,7 +116,7 @@ router.get('/status', authMiddleware, async (req, res) => {
             user_login: userLogin,
             has_active_transmission: true,
             transmission_type: 'obs',
-            stream_url: `http://stmv1.udicast.com:1935/samhost/${userLogin}_live/playlist.m3u8`,
+            stream_url: `https://stmv1.udicast.com/samhost/${userLogin}_live/playlist.m3u8`,
             title: `Transmissão OBS - ${userLogin}`,
             playlist_name: null,
             stream_info: {

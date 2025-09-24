@@ -7,12 +7,32 @@ const router = express.Router();
 // GET /api/player-port/iframe - Player iFrame na porta do sistema
 router.get('/iframe', async (req, res) => {
   try {
-    const { stream, playlist, video, player_type = 'html5', login, vod, aspectratio = '16:9', autoplay = 'false', muted = 'false', loop = 'false', contador = 'false', compartilhamento = 'false', player = '1' } = req.query;
+    const { 
+      stream, 
+      playlist, 
+      video, 
+      player_type = 'html5', 
+      login, 
+      vod, 
+      aspectratio = '16:9', 
+      autoplay = 'false', 
+      muted = 'false', 
+      loop = 'false', 
+      contador = 'false', 
+      compartilhamento = 'false', 
+      player = '1' 
+    } = req.query;
 
     let videoUrl = '';
     let title = 'Player';
     let isLive = false;
-    let userLogin = login || 'usuario';
+    
+    // Corrigir userLogin - garantir que seja string válida
+    let userLogin = 'usuario';
+    if (login && typeof login === 'string' && login.trim() && !login.includes('http')) {
+      userLogin = login.trim();
+    }
+    
     let vodPath = vod || '';
     let playlistId = playlist || '';
 
@@ -28,7 +48,7 @@ router.get('/iframe', async (req, res) => {
     // Construir URL baseado nos parâmetros
     if (vodPath) {
       // VOD específico
-      const wowzaHost = 'stmv1.udicast.com'; // SEMPRE usar domínio
+      const wowzaHost = 'stmv1.udicast.com';
 
       // Garantir que o arquivo é MP4
       const vodPathParts = vodPath.split('/');
@@ -36,9 +56,9 @@ router.get('/iframe', async (req, res) => {
         const folderName = vodPathParts[0];
         const fileName = vodPathParts[1];
         const finalFileName = fileName.endsWith('.mp4') ? fileName : fileName.replace(/\.[^/.]+$/, '.mp4');
-        videoUrl = `http://${wowzaHost}:80/vod/_definst_/mp4:${userLogin}/${folderName}/${finalFileName}/playlist.m3u8`;
+        videoUrl = `https://${wowzaHost}/${userLogin}/${userLogin}/mp4:${folderName}/${finalFileName}/playlist.m3u8`;
       } else {
-        videoUrl = `http://${wowzaHost}:80/vod/_definst_/mp4:${userLogin}/default/${vodPath}/playlist.m3u8`;
+        videoUrl = `https://${wowzaHost}/${userLogin}/${userLogin}/mp4:default/${vodPath}/playlist.m3u8`;
       }
 
       title = `VOD: ${vodPath}`;
@@ -46,6 +66,19 @@ router.get('/iframe', async (req, res) => {
     } else if (playlistId) {
       try {
         console.log(`🔍 Verificando transmissão ativa para playlist ${playlistId}...`);
+        
+        // Buscar playlist no banco
+        const [playlistRows] = await db.execute(
+          'SELECT nome FROM playlists WHERE id = ?',
+          [playlistId]
+        );
+        
+        if (playlistRows.length > 0) {
+          const wowzaHost = 'stmv1.udicast.com';
+          videoUrl = `https://${wowzaHost}/${userLogin}/smil:playlists_agendamentos.smil/playlist.m3u8`;
+          title = `Playlist: ${playlistRows[0].nome}`;
+          isLive = true;
+        }
       } catch (error) {
         console.error("Erro ao verificar playlist:", error);
       }
@@ -73,23 +106,13 @@ router.get('/iframe', async (req, res) => {
         // Definir URL padrão OBS
         videoUrl = `https://${wowzaHost}/${userLogin}/${userLogin}/playlist.m3u8`;
 
-        // Buscar nome da playlist (se existir)
-        const [rows] = await db.execute(
-          'SELECT nome FROM playlists WHERE id = ?',
-          [playlist]
-        );
-
-        if (rows.length > 0) {
-          title = `Playlist: ${rows[0].nome}`;
-        } else {
-          title = `Stream OBS - ${userLogin}`;
-        }
+        title = `Stream OBS - ${userLogin}`;
 
         isLive = true;
       } catch (error) {
         console.error('Erro ao buscar playlist específica:', error);
         videoUrl = '';
-        title = `Erro na Playlist - ${playlist}`;
+        title = `Erro no Stream - ${userLogin}`;
         isLive = false;
       }
     }
@@ -98,38 +121,9 @@ router.get('/iframe', async (req, res) => {
     if (!videoUrl && userLogin && userLogin !== 'usuario') {
       try {
         const wowzaHost = 'stmv1.udicast.com';
-        title = `Playlist: ${playlistRows[0].nome}`;
-        // Para playlist, usar o primeiro vídeo
-        const [videoRows] = await db.execute(
-          'SELECT v.url, v.nome, v.caminho FROM videos v WHERE v.playlist_id = ? ORDER BY v.ordem_playlist ASC, v.id ASC LIMIT 1',
-          [playlist]
-        );
-
-        if (videoRows.length > 0) {
-          const video = videoRows[0];
-          let videoPath = video.url || video.caminho;
-
-          // Construir URL HLS do Wowza
-          if (videoPath && !videoPath.startsWith('http')) {
-            const cleanPath = videoPath.replace(/^\/?(home\/streaming\/|content\/|streaming\/)?/, '');
-            const pathParts = cleanPath.split('/');
-
-            if (pathParts.length >= 3) {
-              const userPath = pathParts[0];
-              const folderName = pathParts[1];
-              const fileName = pathParts[2];
-              const finalFileName = fileName.endsWith('.mp4') ? fileName : fileName.replace(/\.[^/.]+$/, '.mp4');
-
-              const wowzaHost = 'stmv1.udicast.com';
-              videoUrl = `https://${wowzaHost}:1935/vod/_definst_/mp4:${userPath}/${folderName}/${finalFileName}/playlist.m3u8`;
-              videoUrl = `/content/${videoPath}`;
-            }
-          } else {
-            videoUrl = videoPath;
-          }
-
-          title = videoRows[0].nome;
-        }
+        videoUrl = `https://${wowzaHost}/${userLogin}/${userLogin}/playlist.m3u8`;
+        title = `Stream: ${userLogin}`;
+        isLive = true;
       } catch (error) {
         console.error('Erro ao carregar playlist:', error);
       }
@@ -137,37 +131,38 @@ router.get('/iframe', async (req, res) => {
 
     if (video) {
       try {
-        const wowzaHost = 'stmv1.udicast.com';
-        const [videoRows] = await db.execute(
-          'SELECT url, nome, caminho FROM videos WHERE id = ?',
-          [video]
-        );
+        if (typeof video === 'string' && video.trim()) {
+          const [videoRows] = await db.execute(
+            'SELECT url, nome, caminho FROM videos WHERE id = ?',
+            [video]
+          );
 
-        if (videoRows.length > 0) {
-          const videoData = videoRows[0];
-          let videoPath = videoData.url || videoData.caminho;
+          if (videoRows.length > 0) {
+            const videoData = videoRows[0];
+            let videoPath = videoData.url || videoData.caminho;
 
-          // Construir URL HLS do Wowza
-          if (videoPath && !videoPath.startsWith('http')) {
-            const cleanPath = videoPath.replace(/^\/?(home\/streaming\/|content\/|streaming\/)?/, '');
-            const pathParts = cleanPath.split('/');
+            // Construir URL HLS do Wowza
+            if (videoPath && !videoPath.startsWith('http')) {
+              const cleanPath = videoPath.replace(/^\/?(home\/streaming\/|content\/|streaming\/)?/, '');
+              const pathParts = cleanPath.split('/');
 
-            if (pathParts.length >= 3) {
-              const userPath = pathParts[0];
-              const folderName = pathParts[1];
-              const fileName = pathParts[2];
-              const finalFileName = fileName.endsWith('.mp4') ? fileName : fileName.replace(/\.[^/.]+$/, '.mp4');
+              if (pathParts.length >= 3) {
+                const userPath = pathParts[0];
+                const folderName = pathParts[1];
+                const fileName = pathParts[2];
+                const finalFileName = fileName.endsWith('.mp4') ? fileName : fileName.replace(/\.[^/.]+$/, '.mp4');
 
-              const wowzaHost = 'stmv1.udicast.com';
-              videoUrl = `https://${wowzaHost}/${userPath}/${userPath}/mp4:${folderName}/${finalFileName}/playlist.m3u8`;
+                const wowzaHost = 'stmv1.udicast.com';
+                videoUrl = `https://${wowzaHost}/${userPath}/${userPath}/mp4:${folderName}/${finalFileName}/playlist.m3u8`;
+              } else {
+                videoUrl = `/content/${videoPath}`;
+              }
             } else {
-              videoUrl = `/content/${videoPath}`;
+              videoUrl = videoPath;
             }
-          } else {
-            videoUrl = videoPath;
-          }
 
-          title = videoRows[0].nome;
+            title = videoRows[0].nome;
+          }
         }
       } catch (error) {
         console.error('Erro ao carregar vídeo:', error);
@@ -177,7 +172,7 @@ router.get('/iframe', async (req, res) => {
     if (!videoUrl && userLogin && userLogin !== 'usuario') {
       // Stream padrão do usuário
       const wowzaHost = 'stmv1.udicast.com';
-      videoUrl = `http://${wowzaHost}:80/${userLogin}/${userLogin}_live/playlist.m3u8`;
+      videoUrl = `https://${wowzaHost}/${userLogin}/${userLogin}_live/playlist.m3u8`;
       title = `Stream: ${userLogin}`;
       isLive = true;
     }
@@ -445,9 +440,15 @@ router.get("/iframe", async (req, res) => {
     let videoUrl = "";
     let title = "Player";
     let isLive = false;
-    const userLogin = login || "usuario";
+    let userLogin = typeof login === 'string' ? login.trim() : 'usuario';
+    
+    // Validar e limpar userLogin
+    if (!userLogin || userLogin === 'usuario' || userLogin.includes('http') || userLogin.includes(':')) {
+      console.warn('⚠️ userLogin inválido detectado:', userLogin);
+      userLogin = 'usuario';
+    }
 
-    const wowzaHost = "stmv1.udicast.com"; // sempre domínio
+    const wowzaHost = "stmv1.udicast.com";
 
     // Caso VOD
     if (vod) {
@@ -457,7 +458,7 @@ router.get("/iframe", async (req, res) => {
         const file = parts[1].endsWith(".mp4")
           ? parts[1]
           : parts[1].replace(/\.[^/.]+$/, ".mp4");
-        videoUrl = `http://${wowzaHost}:80/vod/_definst_/mp4:${userLogin}/${folder}/${file}/playlist.m3u8`;
+        videoUrl = `https://${wowzaHost}/vod/_definst_/mp4:${userLogin}/${folder}/${file}/playlist.m3u8`;
       }
       title = `VOD: ${vod}`;
       isLive = false;
@@ -465,32 +466,38 @@ router.get("/iframe", async (req, res) => {
 
     // Caso Stream OBS
     else if (stream) {
-      videoUrl = `http://${wowzaHost}:80/${userLogin}/${userLogin}_live/playlist.m3u8`;
+      videoUrl = `https://${wowzaHost}/${userLogin}/${userLogin}_live/playlist.m3u8`;
       title = `Stream OBS - ${userLogin}`;
       isLive = true;
     }
 
     // Caso Playlist
     else if (playlist) {
-      const [rows] = await db.execute(
-        "SELECT nome FROM playlists WHERE id = ?",
-        [playlist]
-      );
+      try {
+        if (typeof playlist === 'string' && playlist.trim()) {
+          const [rows] = await db.execute(
+            "SELECT nome FROM playlists WHERE id = ?",
+            [playlist]
+          );
 
-      if (rows.length > 0) {
-        title = `Playlist: ${rows[0].nome}`;
-        // Aqui você pode melhorar pegando o primeiro vídeo da playlist
-      } else {
-        title = `Playlist Offline - ${playlist}`;
+          if (rows.length > 0) {
+            title = `Playlist: ${rows[0].nome}`;
+          } else {
+            title = `Playlist Offline - ${playlist}`;
+          }
+        }
+      } catch (dbError) {
+        console.error('Erro ao buscar playlist:', dbError);
+        title = `Playlist - ${playlist}`;
       }
 
-      videoUrl = `http://${wowzaHost}:80/${userLogin}/${userLogin}_live/playlist.m3u8`;
+      videoUrl = `https://${wowzaHost}/${userLogin}/${userLogin}_live/playlist.m3u8`;
       isLive = true;
     }
 
     // Fallback padrão OBS
     else {
-      videoUrl = `http://${wowzaHost}:80/${userLogin}/${userLogin}_live/playlist.m3u8`;
+      videoUrl = `https://${wowzaHost}/${userLogin}/${userLogin}_live/playlist.m3u8`;
       title = `Stream OBS - ${userLogin}`;
       isLive = true;
     }

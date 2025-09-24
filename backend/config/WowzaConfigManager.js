@@ -867,7 +867,7 @@ class WowzaConfigManager {
 
     // Construir URLs de transmissão ao vivo
     buildLiveStreamUrls(userLogin, serverId = null) {
-        const wowzaHost = 'stmv1.udicast.com'; // SEMPRE usar domínio do Wowza
+        const wowzaHost = 'stmv1.udicast.com';
 
         return {
             // URL RTMP para OBS
@@ -876,24 +876,24 @@ class WowzaConfigManager {
             // Chave de transmissão
             streamKey: `${userLogin}_live`,
 
-            // URL HLS para OBS usando porta 1935
-            hls: `http://${wowzaHost}:1935/${userLogin}/${userLogin}_live/playlist.m3u8`,
+            // URL HLS para OBS usando HTTPS
+            hls: `https://${wowzaHost}/${userLogin}/${userLogin}_live/playlist.m3u8`,
             
-            // URL HLS usando porta 80 (HTTP normal)
-            hls_http: `http://${wowzaHost}/${userLogin}/${userLogin}_live/playlist.m3u8`,
+            // URL HLS HTTP
+            hls_http: `https://${wowzaHost}/${userLogin}/${userLogin}_live/playlist.m3u8`,
             
             // URL DASH para OBS
-            dash: `http://${wowzaHost}:1935/${userLogin}/${userLogin}_live/manifest.mpd`,
+            dash: `https://${wowzaHost}/${userLogin}/${userLogin}_live/manifest.mpd`,
             
             // URL RTSP para OBS
             rtsp: `rtsp://${wowzaHost}:554/${userLogin}/${userLogin}_live`,
 
             // URLs para SMIL (playlists)
-            smil_hls: `http://${wowzaHost}:1935/${userLogin}/smil:playlists_agendamentos.smil/playlist.m3u8`,
-            smil_hls_http: `http://${wowzaHost}/${userLogin}/smil:playlists_agendamentos.smil/playlist.m3u8`,
+            smil_hls: `https://${wowzaHost}/${userLogin}/smil:playlists_agendamentos.smil/playlist.m3u8`,
+            smil_hls_http: `https://${wowzaHost}/${userLogin}/smil:playlists_agendamentos.smil/playlist.m3u8`,
             smil_rtmp: `rtmp://${wowzaHost}:1935/${userLogin}/smil:playlists_agendamentos.smil`,
             smil_rtsp: `rtsp://${wowzaHost}:554/${userLogin}/smil:playlists_agendamentos.smil`,
-            smil_dash: `http://${wowzaHost}:1935/${userLogin}/smil:playlists_agendamentos.smil/manifest.mpd`,
+            smil_dash: `https://${wowzaHost}/${userLogin}/smil:playlists_agendamentos.smil/manifest.mpd`,
             // URL de gravação
             recording_path: `${this.streamingBasePath}/${userLogin}/recordings/`,
 
