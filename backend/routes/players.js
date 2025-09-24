@@ -36,8 +36,8 @@ router.get('/iframe', async (req, res) => {
       isLive = false;
     } else if (stream) {
       // Stream ao vivo
-     const wowzaHost = 'stmv1.udicast.com'; // SEMPRE usar domínio
-     videoUrl = `http://${wowzaHost}:80/${stream.split('_')[0]}/${stream}/playlist.m3u8`;
+      const wowzaHost = 'stmv1.udicast.com';
+      videoUrl = `https://${wowzaHost}/${stream.split('_')[0]}/${stream}/playlist.m3u8`;
       title = `Stream: ${stream}`;
       isLive = true;
     } else if (playlist) {
@@ -71,8 +71,8 @@ router.get('/iframe', async (req, res) => {
                 const fileName = pathParts[2];
                 const finalFileName = fileName.endsWith('.mp4') ? fileName : fileName.replace(/\.[^/.]+$/, '.mp4');
                 
-                const wowzaHost = 'stmv1.udicast.com'; // SEMPRE usar domínio
-                videoUrl = `https://${wowzaHost}:1935/vod/_definst_/mp4:${userPath}/${folderName}/${finalFileName}/playlist.m3u8`;
+                const wowzaHost = 'stmv1.udicast.com';
+                videoUrl = `https://${wowzaHost}/vod/_definst_/mp4:${userPath}/${folderName}/${finalFileName}/playlist.m3u8`;
                 videoUrl = `/content/${videoPath}`;
               }
             } else {
@@ -108,9 +108,8 @@ router.get('/iframe', async (req, res) => {
               const fileName = pathParts[2];
               const finalFileName = fileName.endsWith('.mp4') ? fileName : fileName.replace(/\.[^/.]+$/, '.mp4');
               
-              const isProduction = process.env.NODE_ENV === 'production';
-              const wowzaHost = isProduction ? 'samhost.wcore.com.br' : '51.222.156.223';
-              videoUrl = `http://${wowzaHost}:1935/vod/_definst_/mp4:${userPath}/${folderName}/${finalFileName}/playlist.m3u8`;
+              const wowzaHost = 'stmv1.udicast.com';
+              videoUrl = `https://${wowzaHost}/vod/_definst_/mp4:${userPath}/${folderName}/${finalFileName}/playlist.m3u8`;
             } else {
               videoUrl = `/content/${videoPath}`;
             }
@@ -125,8 +124,8 @@ router.get('/iframe', async (req, res) => {
       }
     } else if (userLogin && userLogin !== 'usuario') {
       // Stream padrão do usuário
-     const wowzaHost = 'stmv1.udicast.com'; // SEMPRE usar domínio
-     videoUrl = `http://${wowzaHost}:80/${userLogin}/${userLogin}_live/playlist.m3u8`;
+      const wowzaHost = 'stmv1.udicast.com';
+      videoUrl = `https://${wowzaHost}/${userLogin}/${userLogin}_live/playlist.m3u8`;
       title = `Stream: ${userLogin}`;
       isLive = true;
     }
