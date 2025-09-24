@@ -292,15 +292,21 @@ router.post('/start-live', authMiddleware, async (req, res) => {
 
           console.log(`✅ Transmissão iniciada com sucesso - Live ID: ${codigoLive}, Processos: ${processCount}`);
 
+          const wowzaHost = 'stmv1.udicast.com';
+          const playerUrls = {
+            hls: `https://${wowzaHost}/samhost/smil:playlists_agendamentos.smil/playlist.m3u8`,
+            hls_http: `https://${wowzaHost}/samhost/smil:playlists_agendamentos.smil/playlist.m3u8`,
+            rtsp: `rtsp://${wowzaHost}:554/samhost/smil:playlists_agendamentos.smil`,
+            dash: `https://${wowzaHost}/samhost/smil:playlists_agendamentos.smil/manifest.mpd`
+          };
+
           res.json({
-            wowzaHost: 'stmv1.udicast.com',
-        const wowzaHost = 'stmv1.udicast.com';
-            hls: `https://${wowzaHost}/${userLogin}/smil:playlists_agendamentos.smil/playlist.m3u8`,
-          hls: `https://${wowzaHost}/samhost/smil:playlists_agendamentos.smil/playlist.m3u8`,
-          hls_http: `https://${wowzaHost}/samhost/smil:playlists_agendamentos.smil/playlist.m3u8`,
-            rtsp: `rtsp://${wowzaHost}:554/${userLogin}/smil:playlists_agendamentos.smil`,
-            dash: `https://${wowzaHost}/${userLogin}/smil:playlists_agendamentos.smil/manifest.mpd`
-          dash: `https://${wowzaHost}/samhost/smil:playlists_agendamentos.smil/manifest.mpd`
+            success: true,
+            message: 'Transmissão iniciada com sucesso',
+            live_id: codigoLive,
+            status: 'transmitindo',
+            player_urls: playerUrls
+          });
         } else {
           // Erro ao iniciar transmissão
           await db.execute(
