@@ -99,9 +99,9 @@ const IniciarTransmissao: React.FC = () => {
           console.log('✅ Stream OBS ativo detectado:', data.obs_stream);
           
           // Se há stream OBS ativo, configurar player
-          const baseUrl = process.env.NODE_ENV === 'production' 
-            ? 'http://samhost.wcore.com.br:3001'
-            : 'http://localhost:3001';
+          const baseUrl = window.location.protocol === 'https:' 
+            ? `https://${window.location.hostname}:3001`
+            : `http://${window.location.hostname}:3001`;
           
           setCurrentPlayerUrl(`${baseUrl}/api/player-port/iframe?login=${userLogin}&stream=${userLogin}_live&player=1&contador=true`);
           setShowPlayer(true);

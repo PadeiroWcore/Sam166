@@ -553,9 +553,9 @@ const Playlists: React.FC = () => {
         toast.success(`Transmissão da playlist "${selectedPlaylist.nome}" iniciada com sucesso!`);
         
         // Configurar URL do player
-        const baseUrl = process.env.NODE_ENV === 'production' 
-          ? 'http://samhost.wcore.com.br:3001'
-          : 'http://localhost:3001';
+        const baseUrl = window.location.protocol === 'https:' 
+          ? `https://${window.location.hostname}:3001`
+          : `http://${window.location.hostname}:3001`;
         
         setPlayerUrl(`${baseUrl}/api/player-port/iframe?login=${userLogin}&playlist=${selectedPlaylist.id}&player=1&contador=true&compartilhamento=true`);
         setShowPlayerModal(true);
